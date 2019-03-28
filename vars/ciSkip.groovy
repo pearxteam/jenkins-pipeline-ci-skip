@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 def call(String step) {
     if (step == 'check') {
         check()
@@ -12,9 +14,8 @@ def call(String step) {
 
 def check() {
     env.CI_SKIP = "false"
-    if(currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause') == '[]') {
-        result = sh(script: "git log -1 | grep -i '.*\\[ci skip\\].*'", returnStatus: true)
-        if (result == 0) {
+    if(currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause').isEmpty()) {
+        if (sh(script: "git log -1 | grep -i '.*\\[ci skip\\].*'", returnStatus: true) == 0) {
             env.CI_SKIP = "true"
             error "'[ci skip]' found in latest git commit message. Stopping the build."
         }
